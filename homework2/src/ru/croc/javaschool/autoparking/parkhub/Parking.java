@@ -94,12 +94,12 @@ public class Parking {
         Random randomValue = new Random();
         if (isEmptyParking()) {
             addAttemptToEntry(new AttemptToEntryEvent(auto.getNumberOfAuto(),
-                    LocalDateTime.now().plus(Duration.ofMinutes(randomValue.nextInt(10))), true));
+                    LocalDateTime.now(), true));
             setNumberOfPlaces(getNumberOfPlaces() - 1);
             entryPoint.addToEntryAutosArray(auto);
         } else {
             addAttemptToEntry(new AttemptToEntryEvent(auto.getNumberOfAuto(),
-                    LocalDateTime.now().plus(Duration.ofMinutes(randomValue.nextInt(10))), false));
+                    LocalDateTime.now(), false));
         }
     }
 
