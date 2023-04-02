@@ -80,7 +80,7 @@ public class DemoScene {
         vehicleList.getByIndex(4).setFaultyState();
         vehicleList.remove(vehicleList.getByIndex(2));
         vehicleList.remove(vehicleList.getByIndex(4));
-        vehicleList.printListOfVehicles();
+        // vehicleList.printListOfVehicles();
 
         /* Бронируем авто(успешно и неуспешно) */
         LocalDate dateFirst = LocalDate.of(2023, 4, 2);
@@ -96,11 +96,14 @@ public class DemoScene {
         vehicleList.getByIndex(0).rentVehicle(
                 new RentEvent(dateFirst, dateSecond, vehicleList.getByIndex(0))
         );
-        /**/
-        LocalDate checkDateFirst = LocalDate.of(2023,4,2);
-        LocalDate checkDateSecond = LocalDate.of(2023,4,9);
+
+        /*Выполняем пункты 4,5,6*/
+        LocalDate checkDateFirst = LocalDate.of(2023, 4, 2);
+        LocalDate checkDateSecond = LocalDate.of(2023, 4, 9);
         vehicleList.toCategories(checkDateFirst, checkDateSecond);
-        vehicleList.trackRentedVehicles(checkDateFirst,checkDateSecond);
+        System.out.println("-------------------------------------------");
+        vehicleList.trackRentedVehicles(checkDateFirst, checkDateSecond);
+        System.out.println("-------------------------------------------");
         vehicleList.createReport(checkDateSecond);
     }
 }

@@ -13,6 +13,9 @@ import java.util.List;
 public class VehicleListEvent implements AccountingOperations, Reportable {
     private List<Vehicle> vehicles;
 
+    /**
+     * Инициализирует {@link VehicleListEvent}
+     */
     public VehicleListEvent() {
         vehicles = new ArrayList<>();
     }
@@ -21,42 +24,38 @@ public class VehicleListEvent implements AccountingOperations, Reportable {
      * Вспомогательная функция для подсчёта транспротных единиц по категориям.
      *
      * @param vehicleCategory категория транспорта
+     * @param date дата
      * @return количество транспорта указанной категории
      */
     private int counterOfFreeVehicle(VehicleCategory vehicleCategory, LocalDate date) {
         int counter = 0;
         for (Vehicle vehicle : vehicles) {
-            if (vehicle.getVehicleCategory() == vehicleCategory && (!vehicle.isFree(date)))
-                counter++;
+            if (vehicle.getVehicleCategory() == vehicleCategory)
+                if (vehicle.isFree(date))
+                    counter++;
         }
         return counter;
     }
 
-    @Override
-    public void registration(Vehicle vehicle) {
-        vehicles.add(vehicle);
-    }
-
-    @Override
-    public void remove(Vehicle vehicle) {
-        vehicles.remove(vehicle);
-    }
-
-    @Override
-    public void createReport(LocalDate date) {
-        List<List<Vehicle>> categories = createCategories();
-        System.out.println("Для категории " + VehicleCategory.AUTO + " доступно всего " + categories.get(0).size());
-        System.out.println("Из них них" +
-                (categories.get(0).size() - counterOfFreeVehicle(VehicleCategory.AUTO, date))
-                + " забронированы на " + date);
-        System.out.println("Для категории " + VehicleCategory.SIMPLE + " доступно всего " + categories.get(1).size());
-        System.out.println("Из них них" +
-                (categories.get(1).size() - counterOfFreeVehicle(VehicleCategory.SIMPLE, date))
-                + " забронированы на " + date);
-        System.out.println("Для категории " + VehicleCategory.AIRCRAFT + " доступно всего " + categories.get(2).size());
-        System.out.println("Из них них" +
-                (categories.get(2).size() - counterOfFreeVehicle(VehicleCategory.AIRCRAFT, date))
-                + " забронированы на " + date);
+    /**
+     * Вспомогательная функция для вывода на экран по категориям
+     *
+     * @param startDate       дата начала.
+     * @param endDate         дата конца.
+     * @param vehicles        список по категории.
+     * @param vehicleCategory категория.
+     */
+    private void printByCategory(LocalDate startDate, LocalDate endDate,
+                                 List<Vehicle> vehicles, VehicleCategory vehicleCategory) {
+        if (vehicles.isEmpty())
+            System.out.println("Свободных единиц транспорта среди категории " + vehicleCategory + " нет" + "\n");
+        else {
+            System.out.println("Среди катгории " + vehicleCategory + " доступны:" + "\n");
+            for (Vehicle vehicle : vehicles) {
+                if (vehicle.isFree(startDate, endDate))
+                    System.out.println(vehicle);
+            }
+        }
     }
 
     /**
@@ -84,41 +83,51 @@ public class VehicleListEvent implements AccountingOperations, Reportable {
         return categories;
     }
 
-    /**
-     * Вспомогательная функция для вывода на экран по категориям
-     *
-     * @param startDate       дата начала.
-     * @param endDate         дата конца.
-     * @param vehicles        список по категории.
-     * @param vehicleCategory категория.
-     */
-    private void printByCategory(LocalDate startDate, LocalDate endDate,
-                                 List<Vehicle> vehicles, VehicleCategory vehicleCategory) {
-        if (vehicles.isEmpty())
-            System.out.println("Свободных единиц транспорта среди категории " + vehicleCategory + " нет" + "\n");
-        else {
-            System.out.println("Среди катгории " + vehicleCategory + " доступны:" + "\n");
-            for (Vehicle vehicle : vehicles) {
-                if (vehicle.isFree(startDate, endDate))
-                    System.out.println(vehicle);
-            }
-        }
+    @Override
+    public void registration(Vehicle vehicle) {
+        vehicles.add(vehicle);
+    }
+
+    @Override
+    public void remove(Vehicle vehicle) {
+        vehicles.remove(vehicle);
+    }
+
+    @Override
+    public void createReport(LocalDate date) {
+        List<List<Vehicle>> categories = createCategories();
+        System.out.println("Для категории " + VehicleCategory.AUTO + " доступно всего " + categories.get(0).size());
+        System.out.println("Из них них " +
+                (categories.get(0).size() - counterOfFreeVehicle(VehicleCategory.AUTO, date))
+                + " забронированы на " + date);
+        System.out.println("Для категории " + VehicleCategory.SIMPLE + " доступно всего " + categories.get(1).size());
+        System.out.println("Из них них " +
+                (categories.get(1).size() - counterOfFreeVehicle(VehicleCategory.SIMPLE, date))
+                + " забронированы на " + date);
+        System.out.println("Для категории " + VehicleCategory.AIRCRAFT + " доступно всего " + categories.get(2).size());
+        System.out.println("Из них них " +
+                (categories.get(2).size() - counterOfFreeVehicle(VehicleCategory.AIRCRAFT, date))
+                + " забронированы на " + date);
     }
 
     @Override
     public void toCategories(LocalDate dateOfStartRent, LocalDate dateOfEndRent) {
         List<List<Vehicle>> categories = createCategories();
         printByCategory(dateOfStartRent, dateOfEndRent, categories.get(0), VehicleCategory.AUTO);
+        System.out.println("-----------------------------------------");
         printByCategory(dateOfStartRent, dateOfEndRent, categories.get(1), VehicleCategory.SIMPLE);
+        System.out.println("-----------------------------------------");
         printByCategory(dateOfStartRent, dateOfEndRent, categories.get(2), VehicleCategory.AIRCRAFT);
     }
 
     @Override
     public void trackRentedVehicles(LocalDate dateOfStartRent, LocalDate dateOfEndRent) {
         for (Vehicle vehicle : vehicles) {
-            if (vehicle.isFree(dateOfStartRent, dateOfEndRent))
-                for (RentEvent rent : vehicle.getRents())
+            for (RentEvent rent : vehicle.getRents())
+                if (!vehicle.isFree(dateOfStartRent, dateOfEndRent)) {
                     System.out.println(rent.toString());
+                    break;
+                }
         }
     }
 
