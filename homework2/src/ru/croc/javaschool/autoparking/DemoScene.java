@@ -11,7 +11,7 @@ import ru.croc.javaschool.autoparking.events.AttemptToEntryEvent;
  *
  * @author dimasssek
  */
-public class Main {
+public class DemoScene {
     public static void main(String[] args) {
         /*
           Выделение памяти и инициализация.
