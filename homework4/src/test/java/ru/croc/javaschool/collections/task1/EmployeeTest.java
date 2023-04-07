@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Тест для {@link Employee}.
+ */
 public class EmployeeTest {
     /**
      * Сотрудники.

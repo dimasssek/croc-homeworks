@@ -6,6 +6,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
+/**
+ * Тест для {@link ManagerReport}.
+ */
 public class ManagerReportTest {
     /**
      * Смешанный список сотрудников.
