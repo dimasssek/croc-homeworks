@@ -49,8 +49,8 @@ public class AuthorRatingTest {
     public void getFirstAuthorsRating() {
         AuthorRating authorRating = new AuthorRating(articleFirst);
         Map<String, Double> expectedMap = new LinkedHashMap<>();
-        expectedMap.put("Второй автор", 75.0);
-        expectedMap.put("Первый автор", ((double) 1 / 3) * 100);
+        expectedMap.put("Первый автор", 75.0);
+        expectedMap.put("Второй автор", ((double) 1 / 3) * 100);
         expectedMap.put("Третий автор", 0.0);
 
         Assertions.assertEquals(expectedMap, authorRating.getAuthorsRating());
