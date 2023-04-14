@@ -1,4 +1,4 @@
-package ru.croc.javaschool.hornsandhooves.entity;
+package ru.croc.javaschool.hornsandhooves.model;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -84,8 +84,8 @@ public class Task implements Serializable {
 
     @Override
     public String toString() {
-        return "Код: " + id + ", Наименование: " + name + ", Описание: " + description +
-                ", Исполнитель: " + executor + ", Статус: " + status;
+        return "Код: " + getId() + ", Наименование: " + getName() + ", Описание: " + getDescription() +
+                ", Исполнитель: " + getExecutor() + ", Статус: " + getStatus();
     }
 }
 

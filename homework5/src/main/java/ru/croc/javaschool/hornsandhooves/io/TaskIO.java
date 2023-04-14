@@ -1,6 +1,6 @@
 package ru.croc.javaschool.hornsandhooves.io;
 
-import ru.croc.javaschool.hornsandhooves.entity.Task;
+import ru.croc.javaschool.hornsandhooves.model.Task;
 import ru.croc.javaschool.hornsandhooves.exceptions.TaskNotFoundException;
 
 import java.io.*;
@@ -27,8 +27,7 @@ public class TaskIO {
             while (true) {
                 tasks.add((Task) objectInputStream.readObject());
             }
-        } catch (EOFException e) {
-        }
+        } catch (EOFException e) {}
         return tasks;
     }
 
@@ -47,12 +46,12 @@ public class TaskIO {
              ObjectInputStream objectInputStream = new ObjectInputStream(inputStream)) {
             while (true) {
                 Task task = (Task) objectInputStream.readObject();
-                if (task.getId() == id) {
+                if (task.getId().equals(id)) {
                     return task;
                 }
             }
         } catch (EOFException e) {
-            throw new TaskNotFoundException("Задача не найдена");
+            throw new TaskNotFoundException();
         }
     }
 
@@ -64,7 +63,7 @@ public class TaskIO {
      * @return true, если файл найден и все задачи вставлены
      * @throws IOException файл не найден
      */
-    public boolean addTasks(File file, List<Task> tasks) throws IOException {
+    public boolean writeTasks(File file, List<Task> tasks) throws IOException {
         FileOutputStream fileOutputStream = new FileOutputStream(file);
         ObjectOutputStream outputStream = new ObjectOutputStream(fileOutputStream);
         for (Task task : tasks) {
@@ -75,7 +74,17 @@ public class TaskIO {
     }
 
     /**
+     * Очищение потока ввода.
      *
+     * @param file файл
+     * @return true, если найдено и очищено
+     * @throws IOException файл не найден
      */
+    public boolean clear(File file) throws IOException {
+        new FileOutputStream(file).close();
+        return true;
+    }
 }
+
+
 
