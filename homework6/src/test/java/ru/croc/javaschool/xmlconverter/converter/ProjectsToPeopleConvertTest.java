@@ -3,7 +3,6 @@ package ru.croc.javaschool.xmlconverter.converter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import ru.croc.javaschool.xmlconverter.model.input.ProjectListIn;
-import ru.croc.javaschool.xmlconverter.model.output.EmployeeListOut;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,9 +27,5 @@ public class ProjectsToPeopleConvertTest {
         ProjectListIn projectList = jaxbConverter.fromXml(input, ProjectListIn.class);
         final String xml = jaxbConverter.toXml(converter.convert(projectList));
         Assertions.assertEquals(expected, xml);
-        Assertions.assertEquals(
-                jaxbConverter.fromXml(expected, EmployeeListOut.class),
-                jaxbConverter.fromXml(xml, EmployeeListOut.class)
-        );
     }
 }

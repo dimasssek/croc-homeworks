@@ -1,7 +1,6 @@
 package ru.croc.javaschool.xmlconverter.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
 
@@ -41,7 +40,6 @@ public class JaxbConverter {
         final XmlMapper mapper = new XmlMapper();
         mapper.registerModule(new JaxbAnnotationModule());
         mapper.setDefaultUseWrapper(false);
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
         return mapper;
     }
 }
