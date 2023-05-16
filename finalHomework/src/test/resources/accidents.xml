@@ -1,0 +1,16 @@
+<accidents>
+    <accident>
+        <timestamp>2023-05-13T07:00:00</timestamp>
+        <event>Столкнулись 2 мусоровоза</event>
+    </accident>
+
+    <accident>
+        <timestamp>2023-05-13T08:00:00</timestamp>
+        <event>Столкнулись 4 легковушки</event>
+    </accident>
+
+    <accident>
+        <timestamp>2023-05-13T11:01:00</timestamp>
+        <event>Камри сбила велосипедиста</event>
+    </accident>
+</accidents>

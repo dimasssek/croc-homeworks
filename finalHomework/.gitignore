@@ -1,0 +1,6 @@
+target/
+*.iml
+.idea
+accidents_db/
+accident_db_test/
+derby.log

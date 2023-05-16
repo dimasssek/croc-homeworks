@@ -1,0 +1,21 @@
+<traffics>
+    <traffic>
+        <timestamp>2023-05-13T07:00:00</timestamp>
+        <value>0.62</value>
+    </traffic>
+
+    <traffic>
+        <timestamp>2023-05-13T08:00:00</timestamp>
+        <value>0.40</value>
+    </traffic>
+
+    <traffic>
+        <timestamp>2023-05-13T12:01:01</timestamp>
+        <value>0.62</value>
+    </traffic>
+
+    <traffic>
+        <timestamp>2023-05-13T10:00:00</timestamp>
+        <value>1.00</value>
+    </traffic>
+</traffics>
