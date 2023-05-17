@@ -1,4 +1,4 @@
-package ru.croc.javaschool.finalhomework.model.input;
+package ru.croc.javaschool.finalhomework.dto;
 
 import ru.croc.javaschool.finalhomework.data.xml.LocalDateTimeConverter;
 
@@ -23,9 +23,18 @@ public class TrafficIn {
     @XmlElement(name = "value")
     private Double value;
 
+    /**
+     * Создаёт {@link TrafficIn}. Нужен для Jaxb.
+     */
     public TrafficIn() {
     }
 
+    /**
+     * Создаёт {@link TrafficIn}.
+     *
+     * @param timestamp временная точка
+     * @param value коэффициент загруженности
+     */
     public TrafficIn(LocalDateTime timestamp, Double value) {
         this.timestamp = timestamp;
         this.value = value;

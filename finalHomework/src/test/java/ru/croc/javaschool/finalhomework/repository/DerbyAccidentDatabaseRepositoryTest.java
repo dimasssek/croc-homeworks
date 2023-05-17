@@ -1,13 +1,16 @@
 package ru.croc.javaschool.finalhomework.repository;
 
-import org.apache.derby.jdbc.EmbeddedDataSource;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.croc.javaschool.finalhomework.data.db.DerbyDataSourceProvider;
 import ru.croc.javaschool.finalhomework.expected.AccidentsLists;
-import ru.croc.javaschool.finalhomework.model.entity.AccidentOut;
+import ru.croc.javaschool.finalhomework.model.AccidentOut;
+import ru.croc.javaschool.finalhomework.property.PropertyContainer;
 
-import javax.sql.DataSource;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,49 +26,54 @@ public class DerbyAccidentDatabaseRepositoryTest {
     /**
      * Источник данных.
      */
-    private DataSource dataSource;
+    private DerbyDataSourceProvider dataProvider;
     /**
      * Набор списков для тестов.
      */
     private final AccidentsLists accidentsLists = new AccidentsLists();
+    /**
+     * Настройки.
+     */
+    private final PropertyContainer propertyContainer = new PropertyContainer("app_test.properties");
 
     /**
      * Инициализация источника и репозитория.
      */
     @BeforeEach
-    void setUp() {
-        dataSource = createTestDataSource();
-        repository = new DerbyAccidentDatabaseRepository(dataSource);
+    void setUp() throws IOException, SQLException {
+        dataProvider = createTestDataProvider();
+        repository = new DerbyAccidentDatabaseRepository(dataProvider.getDataSource());
         repository.deleteAll();
         repository.createMany(accidentsLists.getInitialAccidents());
     }
+
     /**
-     * Создает источник данных для тестирования.
-     *
+     * Создаёт источник данных.
      * @return источник данных
+     * @throws IOException
      */
-    private static DataSource createTestDataSource() {
-        String dbName = "accident_db_test";
-        return new EmbeddedDataSource() {{
-            setDatabaseName(dbName);
-            setCreateDatabase("create");
-        }};
+    private DerbyDataSourceProvider createTestDataProvider() throws IOException {
+        propertyContainer.loadProperties();
+        return new DerbyDataSourceProvider(propertyContainer);
     }
 
-
+    /**
+     * Тест для {@link DerbyAccidentDatabaseRepository#createMany(List<AccidentOut>)} и
+     * {@link DerbyAccidentDatabaseRepository#findAll()}.
+     */
     @Test
-    void createManyAndFindAllTest() {
-        repository.deleteAll();
-        List<AccidentOut> initialAccidents = accidentsLists.getInitialAccidents();
-        repository.createMany(initialAccidents);
+    void createManyAndFindAllTest() throws SQLException {
         Assertions.assertEquals(accidentsLists.getExpectedFindAll(), repository.findAll());
     }
 
+    /**
+     * Тест для {@link DerbyAccidentDatabaseRepository#create(AccidentOut)}.
+     */
     @Test
-    void createTest(){
+    void createTest() throws SQLException {
         AccidentOut accident = new AccidentOut();
         accident.setTimestamp(LocalDateTime.of(2023, 5, 15, 23, 59, 0));
-        accident.setCoefficientWorkload(0.02);
+        accident.setCoefficientWorkload(new BigDecimal("0.02"));
         accident.setInfo("Сбили 2 пешеходов");
         repository.create(accident);
         Assertions.assertTrue(repository.findAll().contains(accident));

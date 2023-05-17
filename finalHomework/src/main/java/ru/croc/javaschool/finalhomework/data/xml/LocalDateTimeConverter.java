@@ -18,11 +18,14 @@ public class LocalDateTimeConverter extends XmlAdapter<String, LocalDateTime> {
      *
      * @param s строковое представление даты и времени
      * @return дата и время.
-     * @throws Exception если произошла ошибка преобразования
      */
     @Override
-    public LocalDateTime unmarshal(String s) throws Exception {
-        return LocalDateTime.parse(s, formatter);
+    public LocalDateTime unmarshal(String s) {
+        try {
+            return LocalDateTime.parse(s, formatter);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -30,10 +33,13 @@ public class LocalDateTimeConverter extends XmlAdapter<String, LocalDateTime> {
      *
      * @param time дата и время.
      * @return строковое представление даты и времени
-     * @throws Exception если произошла ошибка преобразования.
      */
     @Override
-    public String marshal(LocalDateTime time) throws Exception {
-        return time.format(formatter);
+    public String marshal(LocalDateTime time) {
+        try {
+            return time.format(formatter);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -19,8 +19,12 @@ public class JaxbConverter {
      * @param <T>  тип
      * @return объект
      */
-    public <T> T fromXml(String xml, Class<T> type) throws IOException {
-        return createXmlMapper().readValue(xml, type);
+    public <T> T fromXml(String xml, Class<T> type) {
+        try {
+            return createXmlMapper().readValue(xml, type);
+        } catch (IOException exception) {
+            throw new RuntimeException(exception);
+        }
     }
 
     /**

@@ -1,6 +1,6 @@
 package ru.croc.javaschool.finalhomework.repository;
 
-import ru.croc.javaschool.finalhomework.model.entity.AccidentOut;
+import ru.croc.javaschool.finalhomework.model.AccidentOut;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -18,13 +18,22 @@ public class DerbyAccidentDatabaseRepository implements AccidentDatabaseReposito
      */
     private final DataSource dataSource;
 
-    public DerbyAccidentDatabaseRepository(DataSource dataSource) {
+    /**
+     * Создаёт {@link DerbyAccidentDatabaseRepository} и инициализирует таблицу.
+     * @param dataSource источник данных
+     */
+    public DerbyAccidentDatabaseRepository(DataSource dataSource) throws SQLException {
         this.dataSource = dataSource;
         initTable();
     }
 
+    /**
+     * Поиск по временной точке.
+     * @param time временная точка
+     * @return {@link AccidentOut}, если найдено, {@code null} иначе.
+     */
     @Override
-    public AccidentOut findByTime(LocalDateTime time) {
+    public AccidentOut findByTime(LocalDateTime time) throws SQLException {
         var accident = (AccidentOut) null;
         var sqlQuery = String.format("SELECT * FROM %s WHERE timestamp = '%s'",
                 AccidentDatabaseRepository.TABLE_NAME,
@@ -37,25 +46,32 @@ public class DerbyAccidentDatabaseRepository implements AccidentDatabaseReposito
                 accident = new AccidentOut(
                         UUID.fromString(resultSet.getString("id")),
                         resultSet.getTimestamp("timestamp").toLocalDateTime(),
-                        resultSet.getDouble("coefficientWorkload"),
+                        resultSet.getBigDecimal("coefficientWorkload"),
                         resultSet.getString("info")
                 );
             }
-        } catch (SQLException e) {
-            System.out.println("Возникла ошибка с запросом (поиск по временной точке)"+e.getMessage());
+        } catch (SQLException exception) {
+           throw exception;
         }
-
         return accident;
     }
 
+    /**
+     * Возвращает все ДТП из базы.
+     * @return список дтп
+     */
     @Override
-    public List<AccidentOut> findAll() {
+    public List<AccidentOut> findAll() throws SQLException {
         var sqlQuery = String.format("SELECT * FROM %s", AccidentDatabaseRepository.TABLE_NAME);
         return sampleQuery(sqlQuery);
     }
 
+    /**
+     * Добавляет в базу новое дтп.
+     * @param accidentOut новое дтп
+     */
     @Override
-    public void create(AccidentOut accidentOut) {
+    public void create(AccidentOut accidentOut) throws SQLException {
         var sqlQuery = String.format("INSERT INTO %s VALUES (?,?,?,?)", AccidentDatabaseRepository.TABLE_NAME);
         var accidentId = UUID.randomUUID();
         try (var connection = dataSource.getConnection();
@@ -67,30 +83,55 @@ public class DerbyAccidentDatabaseRepository implements AccidentDatabaseReposito
                     2,
                     Timestamp.valueOf(accidentOut.getTimestamp())
             );
-            statement.setDouble(
+            statement.setBigDecimal(
                     3,
                     accidentOut.getCoefficientWorkload()
             );
             statement.setString(4,
                     accidentOut.getInfo());
             statement.execute();
-            System.out.println("Объект успешно добавлен в базу ");
         } catch (SQLException exception) {
-            System.out.println("Возникла ошибка при заполнении таблицы " + exception.getMessage());
-        } finally {
-            System.out.println("=======================================================");
+           throw exception;
         }
     }
 
+    /**
+     * Добавляет в базу список дтп.
+     * @param accidents список дтп
+     */
     @Override
-    public void createMany(List<AccidentOut> accidents) {
-        for (AccidentOut accident : accidents) {
-            create(accident);
+    public void createMany(List<AccidentOut> accidents) throws SQLException {
+        var sqlQuery = String.format("INSERT INTO %s VALUES (?,?,?,?)", AccidentDatabaseRepository.TABLE_NAME);
+        try (var connection = dataSource.getConnection();
+             var statement = connection.prepareStatement(sqlQuery)) {
+            connection.setAutoCommit(false);
+            for (AccidentOut accident : accidents) {
+                statement.setString(
+                        1,
+                        UUID.randomUUID().toString());
+                statement.setTimestamp(
+                        2,
+                        Timestamp.valueOf(accident.getTimestamp())
+                );
+                statement.setBigDecimal(
+                        3,
+                        accident.getCoefficientWorkload()
+                );
+                statement.setString(4,
+                        accident.getInfo());
+                statement.execute();
+            }
+            connection.commit();
+        } catch (SQLException exception) {
+            throw exception;
         }
     }
 
+    /**
+     * Очищает базу данных.
+     */
     @Override
-    public void deleteAll() {
+    public void deleteAll() throws SQLException {
         var sqlQuery = String.format("DELETE FROM %s", AccidentDatabaseRepository.TABLE_NAME);
         voidQuery(sqlQuery);
     }
@@ -98,18 +139,15 @@ public class DerbyAccidentDatabaseRepository implements AccidentDatabaseReposito
     /**
      * Создание и инициализация таблицы.
      */
-    private void initTable() {
-        System.out.printf("Инициализация таблицы " + AccidentDatabaseRepository.TABLE_NAME + "%n");
+    private void initTable() throws SQLException {
         try (var connection = dataSource.getConnection();
-             var statement = connection.createStatement()) {
-            var databaseMetaData = connection.getMetaData();
-            var resultSet = databaseMetaData.getTables(
-                    null,
-                    null,
-                    AccidentDatabaseRepository.TABLE_NAME.toUpperCase(),
-                    new String[]{"TABLE"});
+             var statement = connection.createStatement();
+             var resultSet = connection.getMetaData().getTables(
+                     null,
+                     null,
+                     AccidentDatabaseRepository.TABLE_NAME.toUpperCase(),
+                     new String[]{"TABLE"})) {
             if (resultSet.next()) {
-                System.out.println("Таблица уже инициализирована");
             } else {
                 statement.executeUpdate(
                         "CREATE TABLE "
@@ -120,12 +158,9 @@ public class DerbyAccidentDatabaseRepository implements AccidentDatabaseReposito
                                 + "coefficientWorkload DOUBLE, "
                                 + "info VARCHAR(50) NOT NULL"
                                 + ")");
-                System.out.println("Таблица успешно создана");
             }
         } catch (SQLException exception) {
-            System.out.println("Возникла ошибка при создании таблицы " + exception.getMessage());
-        } finally {
-            System.out.println("=======================================================");
+            throw exception;
         }
     }
 
@@ -135,27 +170,23 @@ public class DerbyAccidentDatabaseRepository implements AccidentDatabaseReposito
      * @param sqlQuery SQL запрос
      * @return результат запроса
      */
-    private List<AccidentOut> sampleQuery(String sqlQuery) {
+    private List<AccidentOut> sampleQuery(String sqlQuery) throws SQLException {
         try (var connection = dataSource.getConnection();
-             var statement = connection.prepareStatement(sqlQuery)) {
-            var resultSet = statement.executeQuery();
+             var statement = connection.prepareStatement(sqlQuery);
+             var resultSet = statement.executeQuery()) {
             var accidents = new ArrayList<AccidentOut>();
             while (resultSet.next()) {
                 accidents.add(new AccidentOut(
                         UUID.fromString(resultSet.getString("id")),
                         resultSet.getTimestamp("timestamp").toLocalDateTime(),
-                        resultSet.getDouble("coefficientWorkload"),
+                        resultSet.getBigDecimal("coefficientWorkload"),
                         resultSet.getString("info")
                 ));
             }
-            System.out.println("Запрос выполнен успешно ");
             return accidents;
         } catch (SQLException exception) {
-            System.out.println("Возникла ошибка при выполнении запроса к таблице " + exception.getMessage());
-        } finally {
-            System.out.println("=======================================================");
+            throw exception;
         }
-        return new ArrayList<>();
     }
 
     /**
@@ -163,15 +194,12 @@ public class DerbyAccidentDatabaseRepository implements AccidentDatabaseReposito
      *
      * @param sqlQuery SQL запрос
      */
-    private void voidQuery(String sqlQuery) {
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sqlQuery)) {
+    private void voidQuery(String sqlQuery) throws SQLException {
+        try (var connection = dataSource.getConnection();
+             var statement = connection.prepareStatement(sqlQuery)) {
             statement.execute();
-            System.out.println("Пустой запрос выполнен успешно ");
-        } catch (Exception e) {
-            System.out.println("Возникла ошибка при выполнении пустого запроса к таблице: " + e.getMessage());
-        } finally {
-            System.out.println("=======================================================");
+        } catch (Exception exception) {
+           throw exception;
         }
     }
 }

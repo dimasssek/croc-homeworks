@@ -15,6 +15,12 @@ public class DerbyDataSourceProvider implements DataSourceProvider {
      */
     private EmbeddedDataSource dataSource;
 
+    private final PropertyContainer propertyContainer;
+
+    public DerbyDataSourceProvider(PropertyContainer propertyContainer) {
+        this.propertyContainer = propertyContainer;
+    }
+
     /**
      * Получение источника данных для Derby.
      *
@@ -24,9 +30,9 @@ public class DerbyDataSourceProvider implements DataSourceProvider {
     public DataSource getDataSource() {
         if (Objects.isNull(dataSource)) {
             dataSource = new EmbeddedDataSource();
-            dataSource.setDatabaseName(PropertyContainer.getProperty("database.name"));
-            var username = PropertyContainer.getProperty("database.username");
-            var password = PropertyContainer.getProperty("database.password");
+            dataSource.setDatabaseName(propertyContainer.getProperty("database.name"));
+            var username = propertyContainer.getProperty("database.username");
+            var password = propertyContainer.getProperty("database.password");
             if (!username.isEmpty() && !password.isEmpty()) {
                 dataSource.setUser(username);
                 dataSource.setPassword(password);
@@ -35,4 +41,5 @@ public class DerbyDataSourceProvider implements DataSourceProvider {
         }
         return dataSource;
     }
+
 }

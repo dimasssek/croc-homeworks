@@ -1,16 +1,18 @@
 package ru.croc.javaschool.finalhomework.service;
 
 import ru.croc.javaschool.finalhomework.data.xml.JaxbConverter;
-import ru.croc.javaschool.finalhomework.model.input.AccidentIn;
-import ru.croc.javaschool.finalhomework.model.input.AccidentListIn;
-import ru.croc.javaschool.finalhomework.model.input.TrafficIn;
-import ru.croc.javaschool.finalhomework.model.input.TrafficListIn;
-import ru.croc.javaschool.finalhomework.model.entity.AccidentOut;
+import ru.croc.javaschool.finalhomework.dto.AccidentIn;
+import ru.croc.javaschool.finalhomework.dto.AccidentListIn;
+import ru.croc.javaschool.finalhomework.dto.TrafficIn;
+import ru.croc.javaschool.finalhomework.dto.TrafficListIn;
+import ru.croc.javaschool.finalhomework.model.AccidentOut;
 import ru.croc.javaschool.finalhomework.repository.AccidentDatabaseRepository;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -23,9 +25,19 @@ public class AccidentService {
      * Репозиторий.
      */
     private final AccidentDatabaseRepository repository;
+    /**
+     * Конвертер для xml-файлов.
+     */
+    private final JaxbConverter jaxbConverter;
 
+    /**
+     * Создаёт {@link AccidentService}.
+     *
+     * @param repository репозиторий
+     */
     public AccidentService(AccidentDatabaseRepository repository) {
         this.repository = repository;
+        this.jaxbConverter = new JaxbConverter();
     }
 
     /**
@@ -36,24 +48,32 @@ public class AccidentService {
      * @param accidentsXml файл с ДТП
      * @throws IOException если возникла ошибка с чтением xml файла
      */
-    public void addAccidentsToDatabase(Path trafficsXml, Path accidentsXml) throws IOException {
-        JaxbConverter jaxbConverter = new JaxbConverter();
-        TrafficListIn trafficsXmlList = jaxbConverter.fromXml(Files.readString(trafficsXml), TrafficListIn.class);
-        AccidentListIn accidentsXmlList = jaxbConverter.fromXml(Files.readString(accidentsXml), AccidentListIn.class);
+    public void addAccidentsToDatabase(Path trafficsXml, Path accidentsXml) throws IOException, SQLException {
+        var trafficsXmlList = jaxbConverter.fromXml(Files.readString(trafficsXml), TrafficListIn.class);
+        var accidentsXmlList = jaxbConverter.fromXml(Files.readString(accidentsXml), AccidentListIn.class);
+        var accidentsOut = new ArrayList<AccidentOut>();
 
-        List<AccidentIn> accidents = accidentsXmlList.getAccidents();
-        List<TrafficIn> traffics = trafficsXmlList.getTraffics();
-        List<AccidentOut> accidentsOut = new ArrayList<>();
-        for (AccidentIn accidentIn : accidents) {
-            for (TrafficIn trafficIn : traffics) {
-                if (accidentIn.getTimestamp().equals(trafficIn.getTimestamp())) {
-                    AccidentOut accident = new AccidentOut();
-                    accident.setTimestamp(accidentIn.getTimestamp());
-                    accident.setCoefficientWorkload(trafficIn.getValue());
-                    accident.setInfo(accidentIn.getEvent());
-                    accidentsOut.add(accident);
-                }
+        var accidents = new HashMap<LocalDateTime, AccidentIn>();
+        var traffics = new HashMap<LocalDateTime, TrafficIn>();
+
+        for (AccidentIn accident : accidentsXmlList.getAccidents()) {
+            accidents.put(accident.getTimestamp(), accident);
+        }
+
+        for (TrafficIn traffic : trafficsXmlList.getTraffics()) {
+            traffics.put(traffic.getTimestamp(), traffic);
+        }
+
+        for (Map.Entry<LocalDateTime, AccidentIn> entry: accidents.entrySet()) {
+            AccidentOut accident = new AccidentOut();
+            accident.setTimestamp(entry.getKey());
+            accident.setInfo(entry.getValue().getEvent());
+            if (traffics.containsKey(entry.getKey())) {
+                accident.setCoefficientWorkload(new BigDecimal(traffics.get(entry.getKey()).getValue()));
+            } else {
+                accident.setCoefficientWorkload(null);
             }
+            accidentsOut.add(accident);
         }
         repository.createMany(accidentsOut);
     }
@@ -61,7 +81,7 @@ public class AccidentService {
     /**
      * Поиск всех ДТП из базы данных.
      */
-    public List<AccidentOut> findAll() {
+    public List<AccidentOut> findAll() throws SQLException {
 //        accidents.forEach(accidentOut -> System.out.println(accidentOut.toString()));
         return repository.findAll();
     }
@@ -72,7 +92,7 @@ public class AccidentService {
      * @param time время
      * @return {@code True}, если найдено, {@code False} иначе
      */
-    public boolean findByTime(LocalDateTime time) {
+    public boolean findByTime(LocalDateTime time) throws SQLException {
         AccidentOut accident = repository.findByTime(time);
         if (Objects.isNull(accident)) {
             System.out.println("Происшествия в это время не случалось");
@@ -85,7 +105,7 @@ public class AccidentService {
     /**
      * Очищение БД.
      */
-    public void deleteAll() {
+    public void deleteAll() throws SQLException {
         repository.deleteAll();
     }
 }

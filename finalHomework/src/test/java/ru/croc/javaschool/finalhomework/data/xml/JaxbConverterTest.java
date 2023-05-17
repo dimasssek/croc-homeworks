@@ -2,8 +2,8 @@ package ru.croc.javaschool.finalhomework.data.xml;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import ru.croc.javaschool.finalhomework.model.input.AccidentIn;
-import ru.croc.javaschool.finalhomework.model.input.AccidentListIn;
+import ru.croc.javaschool.finalhomework.dto.AccidentIn;
+import ru.croc.javaschool.finalhomework.dto.AccidentListIn;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,8 +15,6 @@ import java.util.List;
 
 /**
  * Тест для {@link JaxbConverter}.
- *
- * По неизвестной причине не отрабатывает. Все тесты показывают, что импорт верный, но этот тест так не думает.
  */
 public class JaxbConverterTest {
     /**
@@ -24,6 +22,10 @@ public class JaxbConverterTest {
      */
     private final JaxbConverter converter = new JaxbConverter();
 
+    /**
+     * Тест для {@link JaxbConverter#fromXml(String, Class)}.
+     * @throws IOException если возникли проблемы с чтением или поиском файла
+     */
     @Test
     public void fromXmlTest() throws IOException {
         Path path = Paths.get("src/test/resources", "fromXmlTest.xml");
